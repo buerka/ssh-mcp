@@ -40,7 +40,7 @@ jobs:
           NAME="ssh-mcp-${VERSION}-${GOOS}-${GOARCH}"
           go build -trimpath -ldflags="-s -w -X main.version=${VERSION}" -o "$NAME" .
           if [ "$GOOS" = "windows" ]; then
-            zip "${NAME}.zip" "${NAME}.exe"
+            7z a "${NAME}.zip" "${NAME}.exe"
           else
             tar czf "${NAME}.tar.gz" "$NAME"
           fi
