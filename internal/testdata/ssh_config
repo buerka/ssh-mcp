@@ -1,0 +1,10 @@
+Host web1
+    HostName web1.example.com
+    User deploy
+    Port 2222
+    IdentityFile ~/.ssh/id_web
+
+Host *
+    ServerAliveInterval 60
+
+Include conf.d/*.conf
