@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 )
 
@@ -22,8 +23,11 @@ func LoadPasswords() (map[string]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("read %s: %w", CredsFile, err)
 	}
-	if info, err := os.Stat(CredsFile); err == nil && info.Mode().Perm()&0077 != 0 {
-		return nil, fmt.Errorf("%s is readable by group/others; fix with: chmod 600 %s", CredsFile, CredsFile)
+	// Unix permission bits don't exist on Windows; skip the check there.
+	if runtime.GOOS != "windows" {
+		if info, err := os.Stat(CredsFile); err == nil && info.Mode().Perm()&0077 != 0 {
+			return nil, fmt.Errorf("%s is readable by group/others; fix with: chmod 600 %s", CredsFile, CredsFile)
+		}
 	}
 	var pw map[string]string
 	if err := json.Unmarshal(b, &pw); err != nil {

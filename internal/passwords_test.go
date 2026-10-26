@@ -3,6 +3,7 @@ package internal
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -31,8 +32,10 @@ func TestPasswordRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := info.Mode().Perm(); got != 0600 {
-		t.Fatalf("file mode = %v, want 0600", got)
+	if runtime.GOOS != "windows" {
+		if got := info.Mode().Perm(); got != 0600 {
+			t.Fatalf("file mode = %v, want 0600", got)
+		}
 	}
 	if p, ok := LookupPassword("web1", "web1.example.com"); !ok || p != "s3cret" {
 		t.Fatalf("lookup failed: %q ok=%v", p, ok)
@@ -65,6 +68,9 @@ func TestPasswordRoundTrip(t *testing.T) {
 }
 
 func TestPasswordRejectsLoosePerms(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("unix permission bits do not exist on windows")
+	}
 	withTempCreds(t)
 	if err := SavePassword("web1", "s3cret"); err != nil {
 		t.Fatal(err)
