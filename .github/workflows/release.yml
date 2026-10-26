@@ -38,9 +38,11 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           NAME="ssh-mcp-${VERSION}-${GOOS}-${GOARCH}"
-          go build -trimpath -ldflags="-s -w -X main.version=${VERSION}" -o "$NAME" .
-          if [ "$GOOS" = "windows" ]; then
-            7z a "${NAME}.zip" "${NAME}.exe"
+          EXT=""
+          if [ "$GOOS" = "windows" ]; then EXT=".exe"; fi
+          go build -trimpath -ldflags="-s -w -X main.version=${VERSION}" -o "${NAME}${EXT}" .
+          if [ -n "$EXT" ]; then
+            7z a "${NAME}.zip" "${NAME}${EXT}"
           else
             tar czf "${NAME}.tar.gz" "$NAME"
           fi
