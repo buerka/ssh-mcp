@@ -17,10 +17,19 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
+// version is overridden at build time via -ldflags="-X main.version=...".
+var version = "dev"
+
 func main() {
 	insecure := flag.Bool("insecure", false, "skip known_hosts host key verification (insecure)")
 	verbose := flag.Bool("verbose", false, "log tool calls to stderr")
+	showVersion := flag.Bool("version", false, "print version and exit")
 	flag.Parse()
+
+	if *showVersion {
+		fmt.Println(version)
+		return
+	}
 
 	if v := os.Getenv("SSH_MCP_MAX_OUTPUT"); v != "" {
 		if n, err := strconv.Atoi(v); err == nil && n > 0 {
