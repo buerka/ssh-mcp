@@ -81,6 +81,28 @@ command = "/path/to/ssh-mcp"
 claude mcp add ssh -- /path/to/ssh-mcp
 ```
 
+### Password auth (optional) 密码登录（可选）
+
+Keys are preferred, but if a host only supports passwords, store one in a
+`0600` file next to your SSH config. The server adds `ssh.Password` auth on
+top of keys/agent when a password is found — keys are still tried first.
+
+优先用密钥，但若某台主机只支持密码，可把密码存进 SSH 配置旁的 `0600` 文件。
+找到密码时服务器会在密钥/agent 之上追加 `ssh.Password` 认证——密钥仍然先试。
+
+```sh
+ssh-mcp password set web1   # hidden prompt; saved to ~/.ssh/ssh-mcp.json (0600) 隐藏输入，存入 0600 文件
+ssh-mcp password del web1   # remove 删除
+ssh-mcp password list       # host names only, never passwords 只列主机名，绝不显示密码
+```
+
+- Passwords never appear in tool output, logs or errors; the file is rejected
+  as unsafe if its permissions are looser than `0600`.
+  密码绝不出现在工具输出、日志或错误信息里；文件权限一旦宽于 `0600` 会拒绝
+  读取并提示修复。
+- Connection order: ssh-agent → identity files → password (when stored).
+  认证顺序：ssh-agent → 密钥文件 → 密码（已存储时）。
+
 ### Flags and environment 参数与环境变量
 
 | Flag / env | Meaning 含义 |
@@ -116,8 +138,10 @@ exit:0
   must be made once by hand (or accept `--insecure` knowingly).
   主机密钥校验基于 `~/.ssh/known_hosts`；新主机首次需手动连接一次（或明确
   接受 `--insecure`）。
-- Password auth is intentionally unsupported. Keys and ssh-agent only.
-  有意不支持密码登录，仅支持密钥与 ssh-agent。
+- Password auth is optional and off by default; keys and ssh-agent come
+  first. Stored passwords live in `~/.ssh/ssh-mcp.json` with mode `0600`.
+  密码登录默认关闭、完全可选，密钥与 ssh-agent 永远优先。已存密码放在
+  `~/.ssh/ssh-mcp.json`，权限 `0600`。
 - The server is stdio-only: it never opens a network port of its own, and
   created port forwards bind to `127.0.0.1` only.
   服务器只走 stdio，自身不监听任何网络端口；端口转发仅绑定 `127.0.0.1`。

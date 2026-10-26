@@ -183,6 +183,9 @@ func (p *Pool) authMethods(cfg *HostConfig) []ssh.AuthMethod {
 	if len(keys) > 0 {
 		methods = append(methods, ssh.PublicKeys(keys...))
 	}
+	if pw, ok := LookupPassword(cfg.Alias, cfg.HostName); ok {
+		methods = append(methods, ssh.Password(pw))
+	}
 	return methods
 }
 

@@ -15,12 +15,18 @@ import (
 
 	"github.com/buerka/ssh-mcp/internal"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"golang.org/x/term"
 )
 
 // version is overridden at build time via -ldflags="-X main.version=...".
 var version = "dev"
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "password" {
+		handlePassword(os.Args[2:])
+		return
+	}
+
 	insecure := flag.Bool("insecure", false, "skip known_hosts host key verification (insecure)")
 	verbose := flag.Bool("verbose", false, "log tool calls to stderr")
 	showVersion := flag.Bool("version", false, "print version and exit")
@@ -50,6 +56,62 @@ func main() {
 		fmt.Fprintln(os.Stderr, "ssh-mcp:", err)
 		os.Exit(1)
 	}
+}
+
+// handlePassword manages optional passwords stored in ~/.ssh/ssh-mcp.json.
+// Only the subcommands touch a terminal; the MCP server never prompts.
+func handlePassword(args []string) {
+	if len(args) == 0 {
+		fmt.Fprintln(os.Stderr, "usage: ssh-mcp password set <host> | del <host> | list")
+		os.Exit(2)
+	}
+	switch args[0] {
+	case "set":
+		host := passwordArg(args)
+		fmt.Fprintf(os.Stderr, "password for %s: ", host)
+		b, err := term.ReadPassword(int(os.Stdin.Fd()))
+		fmt.Fprintln(os.Stderr)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "ssh-mcp:", err)
+			os.Exit(1)
+		}
+		if len(b) == 0 {
+			fmt.Fprintln(os.Stderr, "empty password; nothing saved")
+			return
+		}
+		if err := internal.SavePassword(host, string(b)); err != nil {
+			fmt.Fprintln(os.Stderr, "ssh-mcp:", err)
+			os.Exit(1)
+		}
+		fmt.Fprintf(os.Stderr, "saved password for %s in %s (mode 0600)\n", host, internal.CredsFile)
+	case "del":
+		host := passwordArg(args)
+		if err := internal.SavePassword(host, ""); err != nil {
+			fmt.Fprintln(os.Stderr, "ssh-mcp:", err)
+			os.Exit(1)
+		}
+		fmt.Fprintf(os.Stderr, "removed password for %s\n", host)
+	case "list":
+		hosts, err := internal.ListPasswordHosts()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "ssh-mcp:", err)
+			os.Exit(1)
+		}
+		for _, h := range hosts {
+			fmt.Println(h)
+		}
+	default:
+		fmt.Fprintf(os.Stderr, "unknown subcommand %q; want set, del or list\n", args[0])
+		os.Exit(2)
+	}
+}
+
+func passwordArg(args []string) string {
+	if len(args) < 2 || args[1] == "" {
+		fmt.Fprintf(os.Stderr, "usage: ssh-mcp password %s <host>\n", args[0])
+		os.Exit(2)
+	}
+	return args[1]
 }
 
 // newServer registers every tool on a fresh MCP server. Split out of main so
