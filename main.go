@@ -117,7 +117,7 @@ func passwordArg(args []string) string {
 // newServer registers every tool on a fresh MCP server. Split out of main so
 // the smoke test can drive the server over an in-memory transport.
 func newServer(app *internal.App) *mcp.Server {
-	server := mcp.NewServer(&mcp.Implementation{Name: "ssh-mcp", Version: "0.1.0"}, nil)
+	server := mcp.NewServer(&mcp.Implementation{Name: "ssh-mcp", Version: version}, nil)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "ssh_hosts",
