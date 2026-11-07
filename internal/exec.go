@@ -23,7 +23,7 @@ type ExecIn struct {
 func (a *App) Exec(ctx context.Context, req *mcp.CallToolRequest, in ExecIn) (*mcp.CallToolResult, any, error) {
 	client, err := a.Pool.Client(in.Host)
 	if err != nil {
-		return ToolError(fmt.Errorf("connect to %s: %w", in.Host, err))
+		return ToolError(err) // already carries resolved settings + credential diagnostics
 	}
 	session, err := client.NewSession()
 	if err != nil {
