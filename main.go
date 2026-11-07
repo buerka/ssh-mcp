@@ -28,9 +28,11 @@ func main() {
 	}
 
 	insecure := flag.Bool("insecure", false, "skip known_hosts host key verification (insecure)")
-	verbose := flag.Bool("verbose", false, "log tool calls to stderr")
+	verbose := flag.Bool("verbose", false, "log connection diagnostics (resolved settings, key fingerprints) to stderr")
 	showVersion := flag.Bool("version", false, "print version and exit")
 	flag.Parse()
+
+	internal.SetVerbose(*verbose)
 
 	if *showVersion {
 		fmt.Println(version)

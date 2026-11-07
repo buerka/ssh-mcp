@@ -108,8 +108,28 @@ ssh-mcp password list       # host names only, never passwords 只列主机名�
 | Flag / env | Meaning 含义 |
 |---|---|
 | `--insecure` | skip `known_hosts` host key verification (dev only)（跳过主机密钥校验，仅限开发） |
-| `--verbose` | log tool calls to stderr, redacted（向 stderr 输出脱敏后的调用日志） |
+| `--verbose` | log connection diagnostics to stderr: resolved settings and key fingerprints（向 stderr 输出连接诊断：解析结果与密钥指纹） |
 | `SSH_MCP_MAX_OUTPUT` | response cap in bytes, default 8192（单次响应字节数上限，默认 8192） |
+
+### Diagnostics and backoff 诊断与退避
+
+Connect failures are self-explaining: the error carries the resolved
+`user@host:port`, every candidate credential with its SHA256 fingerprint (or
+why it was skipped), and a password hint. Use `--verbose` for the same on
+stderr per attempt.
+
+连接失败自带诊断：错误信息包含解析出的 `user@host:port`、每个候选凭据的
+SHA256 指纹（或被跳过的原因）以及密码提示；`--verbose` 还会把每次尝试写到
+stderr。
+
+After a failed connect, retries back off 5s → 15s → 45s per host (reset on
+success). This protects against sshd `PerSourcePenalties`, where rapid
+retries escalate short auth failures into minutes-long handshake lockouts
+that look like "algorithm incompatibility".
+
+连接失败后按主机退避 5s → 15s → 45s（成功即重置），防止 sshd 的
+`PerSourcePenalties` 把短暂的认证失败滚成几分钟的握手封锁——那正是"算法不
+兼容"错觉的常见来源。
 
 ## Example session 使用示例
 
