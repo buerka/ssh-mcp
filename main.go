@@ -119,7 +119,13 @@ func passwordArg(args []string) string {
 // newServer registers every tool on a fresh MCP server. Split out of main so
 // the smoke test can drive the server over an in-memory transport.
 func newServer(app *internal.App) *mcp.Server {
-	server := mcp.NewServer(&mcp.Implementation{Name: "ssh-mcp", Version: version}, nil)
+	// Injected into the model context by every MCP-compatible client at
+	// handshake; the protocol-native way to steer agents toward the tools
+	// instead of shell ssh. Keep it short — it costs context in every session.
+	const instructions = `For anything on an SSH host (running commands, files, tunnels), use these ssh_* tools instead of typing ssh/scp/ssh -L in the shell: they give context-friendly truncated output, keep credentials out of sight, and back off automatically on failures. Call ssh_hosts first when unsure which hosts exist; page long ssh_exec output with ssh_output. Connect errors are self-diagnosing (resolved settings + key fingerprints) — read them instead of guessing.`
+	server := mcp.NewServer(&mcp.Implementation{Name: "ssh-mcp", Version: version}, &mcp.ServerOptions{
+		Instructions: instructions,
+	})
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "ssh_hosts",
