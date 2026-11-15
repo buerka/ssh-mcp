@@ -1,6 +1,6 @@
 module github.com/buerka/ssh-mcp
 
-go 1.27.3
+go 1.27.4
 
 require (
 	github.com/kevinburke/ssh_config v1.6.0
