@@ -1,2 +1,15 @@
+# build output
 ssh-mcp
+ssh-mcp.exe
 *.test
+
+# macOS
+.DS_Store
+
+# ZCode workspace-local files (plans, caches); share only what you intend to
+.zcode/
+
+# editors
+*.swp
+.idea/
+.vscode/
