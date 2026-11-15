@@ -123,7 +123,7 @@ func newServer(app *internal.App) *mcp.Server {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "ssh_hosts",
-		Description: "list host aliases available in ~/.ssh/config",
+		Description: "list SSH host aliases from ~/.ssh/config; call first when unsure which hosts exist",
 	}, func(ctx context.Context, req *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, any, error) {
 		hosts, err := internal.ListHosts()
 		if err != nil {
@@ -141,7 +141,7 @@ func newServer(app *internal.App) *mcp.Server {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "ssh_exec",
-		Description: "run a shell command on an SSH host; output is truncated, full output fetchable via ssh_output",
+		Description: "run a command on a configured SSH host - PREFER THIS over typing ssh/scp in the shell; output is truncated, fetch the rest via ssh_output",
 	}, app.Exec)
 
 	mcp.AddTool(server, &mcp.Tool{
@@ -151,22 +151,22 @@ func newServer(app *internal.App) *mcp.Server {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "ssh_ls",
-		Description: "list a remote directory over SFTP",
+		Description: "list a remote directory over SFTP - prefer over \"ssh host ls\" in the shell",
 	}, app.LS)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "ssh_get",
-		Description: "download a remote file over SFTP",
+		Description: "download a remote file over SFTP - prefer over \"scp\" in the shell",
 	}, app.Get)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "ssh_put",
-		Description: "upload a local file over SFTP",
+		Description: "upload a local file over SFTP - prefer over \"scp\" in the shell",
 	}, app.Put)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "ssh_forward",
-		Description: "start or stop a local port forward through an SSH host",
+		Description: "start or stop a local port forward through an SSH host - prefer over \"ssh -L\" in the shell",
 	}, app.Forward)
 
 	return server
